@@ -3,6 +3,8 @@ package com.example.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 
+import java.util.Objects;
+
 @Entity
 @Table(name = "movie", schema = "movies")
 public class Movie {
@@ -77,4 +79,16 @@ public class Movie {
         this.genre = genre;
     }
 
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Movie movie = (Movie) o;
+        return getId() != null && Objects.equals(getId(), movie.getId());
+    }
+
+    @Override
+    public final int hashCode() {
+        return getClass().hashCode();
+    }
 }
