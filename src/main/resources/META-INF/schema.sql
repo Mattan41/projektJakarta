@@ -10,3 +10,4 @@ CREATE TABLE movie (
                        PRIMARY KEY (Id)
 ); 
 DROP TABLE movie;
+SELECT * from movie;

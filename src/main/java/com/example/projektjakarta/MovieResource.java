@@ -22,8 +22,6 @@ public class MovieResource {
     @Inject
     public MovieResource(MovieRepository movieRepository) {
         this.movieRepository = movieRepository;
-
-
     }
 
     @GET
