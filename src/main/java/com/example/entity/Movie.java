@@ -3,15 +3,21 @@ package com.example.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 
+import java.io.Serializable;
 import java.util.Objects;
+import java.util.UUID;
 
 @Entity
 @Table(name = "movie", schema = "movies")
-public class Movie {
+public class Movie implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "Id", nullable = false)
+    @Column(name = "id", nullable = false)
     private Integer id;
+
+
+    @Column(name = "uuid")
+    private UUID uuid;
 
     @Size(max = 100)
     @Column(name = "title", length = 100)
@@ -37,6 +43,14 @@ public class Movie {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public UUID getUuid(){
+        return uuid;
+    }
+
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
     }
 
     public String getTitle() {

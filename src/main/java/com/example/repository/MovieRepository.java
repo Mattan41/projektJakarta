@@ -8,6 +8,7 @@ import jakarta.transaction.Transactional;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.UUID;
 
 @ApplicationScoped
 public class MovieRepository implements Serializable {
@@ -23,6 +24,8 @@ public class MovieRepository implements Serializable {
 
     @Transactional
     public Movie add(Movie movie) {
+        UUID uuid = UUID.randomUUID();
+        movie.setUuid(uuid);
         entityManager.persist(movie);
         return movie;
     }
