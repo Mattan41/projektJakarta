@@ -1,4 +1,4 @@
-package com.example.projektjakarta;
+package com.example.resource;
 
 import com.example.dto.MovieDto;
 import com.example.dto.Movies;
