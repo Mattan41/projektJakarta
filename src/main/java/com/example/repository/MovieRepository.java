@@ -33,4 +33,10 @@ public class MovieRepository implements Serializable {
     public Movie findById(int id) {
         return entityManager.find(Movie.class, id);
     }
+
+    public Movie findByUuid(UUID uuid) {
+        return entityManager.createQuery("SELECT m FROM Movie m WHERE m.uuid = :uuid", Movie.class).
+            setParameter("uuid", uuid).
+            getSingleResult();
+    }
 }

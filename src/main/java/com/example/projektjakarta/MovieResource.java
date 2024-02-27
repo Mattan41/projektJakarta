@@ -11,6 +11,7 @@ import jakarta.ws.rs.core.Response;
 
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Path("/movies")
 public class MovieResource {
@@ -31,6 +32,16 @@ public class MovieResource {
         return new Movies(
             movieRepository.getAll().stream().map(MovieDto::map).toList(),
             LocalDateTime.now());
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{uuid}")
+    public MovieDto one(@PathParam("uuid") UUID uuid) {
+        var movie = movieRepository.findByUuid(uuid);
+        if (movie == null)
+            throw new NotFoundException("Invalid id " + uuid);
+        return MovieDto.map(movie);
     }
 
     @POST
