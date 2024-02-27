@@ -1,5 +1,6 @@
 package com.example.repository;
 
+import com.example.dto.MovieDto;
 import com.example.entity.Movie;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
@@ -39,4 +40,16 @@ public class MovieRepository implements Serializable {
             setParameter("uuid", uuid).
             getSingleResult();
     }
+
+    public Movie update(UUID uuid, Movie movie) {
+        var entity = entityManager.find(Movie.class, uuid);
+        entity.setUuid(movie.getUuid());
+        movie.setTitle(movie.getTitle());
+        movie.setDirector(movie.getDirector());
+        movie.setReleaseYear(movie.getReleaseYear());
+        movie.setRating(movie.getRating());
+        movie.setGenre(movie.getGenre());
+        return entity;
+    }
+
 }
