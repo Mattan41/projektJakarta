@@ -5,15 +5,13 @@ import com.example.dto.Movies;
 import com.example.repository.MovieRepository;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Path("/movies")
 public class MovieResource {
@@ -36,11 +34,22 @@ public class MovieResource {
             LocalDateTime.now());
     }
 
-    @POST
+    @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response create(@Valid MovieDto movieDto) {
-        var movie = movieRepository.add(MovieDto.map(movieDto));
-        return Response.created(URI.create("movies/" + movie.getId().toString())).build();
+    @Path("{uuid}")
+    public MovieDto one(@PathParam("uuid") UUID uuid) {
+        var movie = movieRepository.findByUuid(uuid);
+        if (movie == null)
+            throw new NotFoundException("Invalid id " + uuid);
+        return MovieDto.map(movie);
     }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response create(@Valid MovieDto movieDto){
+        var movie = movieRepository.add(MovieDto.map(movieDto));
+        return Response.created(URI.create("movies/" + movie.getUuid())).build();
+    }
+
 
 }
