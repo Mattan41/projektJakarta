@@ -9,5 +9,8 @@ CREATE TABLE movie (
                      rating FLOAT,
                      genre VARCHAR(20)
 );
+CREATE INDEX idx_uuid
+  ON movie (uuid);
+
 DROP TABLE movie;
 SELECT * from movie;

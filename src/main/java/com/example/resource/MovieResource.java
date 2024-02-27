@@ -51,5 +51,4 @@ public class MovieResource {
         return Response.created(URI.create("movies/" + movie.getUuid())).build();
     }
 
-
 }
