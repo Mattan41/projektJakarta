@@ -2,8 +2,10 @@ package com.example.resource;
 
 import com.example.dto.MovieDto;
 import com.example.dto.Movies;
+import com.example.entity.Movie;
 import com.example.repository.MovieRepository;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -53,12 +55,10 @@ public class MovieResource {
 
     @PUT
     @Path("/{uuid}")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateOne(@PathParam("uuid") UUID uuid) {
-        var movie = movieRepository.findByUuid(uuid);
-        movieRepository.update(uuid, movie);
-        return Response.created(URI.create("movies/" + movie.getUuid())).build();
+    public Response updateOne(@PathParam("uuid") UUID uuid, MovieDto movie) {
+        movieRepository.replace(uuid, MovieDto.map(movie));
+        return Response.created(URI.create("movies/" + uuid)).build();
     }
 
 }
