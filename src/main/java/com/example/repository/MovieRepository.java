@@ -39,4 +39,16 @@ public class MovieRepository implements Serializable {
             setParameter("uuid", uuid).
             getSingleResult();
     }
+    @Transactional
+    public void replace(UUID uuid, Movie updatedMovie) {
+        Movie movie = findByUuid(uuid);
+        movie.setUuid(uuid);
+        movie.setTitle(updatedMovie.getTitle());
+        movie.setDirector(updatedMovie.getDirector());
+        movie.setReleaseYear(updatedMovie.getReleaseYear());
+        movie.setRating(updatedMovie.getRating());
+        movie.setGenre(updatedMovie.getGenre());
+        entityManager.persist(movie);
+    }
+
 }
