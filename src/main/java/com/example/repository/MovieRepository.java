@@ -5,6 +5,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.core.Response;
 
 import java.io.Serializable;
 import java.util.List;
@@ -26,7 +27,7 @@ public class MovieRepository implements Serializable {
     public Movie add(Movie movie) {
         UUID uuid = UUID.randomUUID();
         movie.setUuid(uuid);
-        entityManager.persist(movie);
+        entityManager.merge(movie);
         return movie;
     }
 
@@ -51,4 +52,14 @@ public class MovieRepository implements Serializable {
         entityManager.persist(movie);
     }
 
+
+
+    @Transactional
+    public Response deleteByUuid(UUID uuid) {
+        Movie movie = entityManager.find(Movie.class,uuid);
+        entityManager.remove(movie);
+        return Response.ok("Successfully deleted").build();
+
+
+    }
 }

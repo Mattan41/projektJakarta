@@ -11,12 +11,8 @@ import java.util.UUID;
 @Table(name = "movie", schema = "movies")
 public class Movie implements Serializable {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Integer id;
-
-
-    @Column(name = "uuid")
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "uuid", nullable = false,updatable = false)
     private UUID uuid;
 
     @Size(max = 100)
@@ -37,13 +33,7 @@ public class Movie implements Serializable {
     @Column(name = "genre", length = 20)
     private String genre;
 
-    public Integer getId() {
-        return id;
-    }
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
 
     public UUID getUuid(){
         return uuid;
@@ -98,7 +88,7 @@ public class Movie implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Movie movie = (Movie) o;
-        return getId() != null && Objects.equals(getId(), movie.getId());
+        return getUuid() != null && Objects.equals(getUuid(), movie.getUuid());
     }
 
     @Override
