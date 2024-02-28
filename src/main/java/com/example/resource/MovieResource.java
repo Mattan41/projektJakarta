@@ -6,8 +6,10 @@ import com.example.repository.MovieRepository;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 
 import java.net.URI;
 import java.time.LocalDateTime;
@@ -16,6 +18,8 @@ import java.util.UUID;
 @Path("/movies")
 public class MovieResource {
 
+    @Context
+    UriInfo uriInfo;
     private MovieRepository movieRepository;
 
     public MovieResource() {
@@ -48,7 +52,7 @@ public class MovieResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(@Valid MovieDto movieDto){
         var movie = movieRepository.add(MovieDto.map(movieDto));
-        return Response.created(URI.create("movies/" + movie.getUuid())).build();
+        return Response.created(URI.create(uriInfo.getAbsolutePath().toString() + "/" + movie.getUuid())).build();
     }
 
 }
