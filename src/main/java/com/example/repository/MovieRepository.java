@@ -3,6 +3,7 @@ package com.example.repository;
 import com.example.entity.Movie;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
@@ -36,10 +37,15 @@ public class MovieRepository implements Serializable {
     }
 
     public Movie findByUuid(UUID uuid) {
-        return entityManager.createQuery("SELECT m FROM Movie m WHERE m.uuid = :uuid", Movie.class).
-            setParameter("uuid", uuid).
-            getSingleResult();
+        try {
+            return entityManager.createQuery("SELECT m FROM Movie m WHERE m.uuid = :uuid", Movie.class)
+                .setParameter("uuid", uuid)
+                .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
     }
+
     @Transactional
     public void replace(UUID uuid, Movie updatedMovie) {
         Movie movie = findByUuid(uuid);
@@ -52,14 +58,16 @@ public class MovieRepository implements Serializable {
         entityManager.persist(movie);
     }
 
-
-
     @Transactional
     public Response deleteByUuid(UUID uuid) {
-        Movie movie = entityManager.find(Movie.class,uuid);
-        entityManager.remove(movie);
-        return Response.ok("Successfully deleted").build();
-
-
+        Movie movie = findByUuid(uuid);
+        if (movie != null) {
+            entityManager.remove(movie);
+            return Response.ok("Movie successfully deleted").build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND)
+                .entity("No movie found with UUID " + uuid)
+                .build();
+        }
     }
 }
