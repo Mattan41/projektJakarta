@@ -14,3 +14,4 @@ RUN /bin/sh -c '$JBOSS_HOME/bin/standalone.sh &' && \
     rm /tmp/mysql-connector-j-8.3.0.jar
 # Add war to the deployments folder
 ADD target/*.war /opt/jboss/wildfly/standalone/deployments/
+

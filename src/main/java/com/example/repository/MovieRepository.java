@@ -17,6 +17,8 @@ public class MovieRepository implements Serializable {
     @PersistenceContext(unitName = "mysql")
     EntityManager entityManager;
 
+
+
     public List<Movie> getAll() {
         return entityManager
             .createQuery("select m from Movie m", Movie.class)
