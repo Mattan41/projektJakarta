@@ -1,7 +1,7 @@
 package com.example.resource;
 
 import com.example.dto.Movies;
-import com.example.dto.MovieDto;
+
 import io.restassured.RestAssured;
 import jakarta.ws.rs.core.MediaType;
 import org.junit.jupiter.api.BeforeAll;
@@ -15,7 +15,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.File;
 import java.util.List;
-import java.util.UUID;
+
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -89,7 +89,8 @@ class MovieResourceTestIT {
                 .statusCode(201);
         }
 
-    }
+
+}
 
 
 
