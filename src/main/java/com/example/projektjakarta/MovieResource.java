@@ -38,11 +38,15 @@ public class MovieResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{uuid}")
-    public MovieDto one(@PathParam("uuid") UUID uuid) {
-        var movie = movieRepository.findByUuid(uuid);
-        if (movie == null)
-            throw new NotFoundException("Invalid id " + uuid);
-        return MovieDto.map(movie);
+    public Response one(@PathParam("uuid") UUID uuid) {
+        Movie movie = movieRepository.findByUuid(uuid);
+        if (movie != null) {
+            return Response.ok(MovieDto.map(movie)).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND)
+                .entity("No movie found with UUID " + uuid)
+                .build();
+        }
     }
 
     @POST
@@ -51,14 +55,21 @@ public class MovieResource {
         var movie = movieRepository.add(MovieDto.map(movieDto));
         return Response.created(URI.create("movies/" + movie.getUuid().toString())).build();
     }
+
     @DELETE
     @Path("/{uuid}")
     public Response delete(@PathParam("uuid") UUID uuid) {
-        Response movie = movieRepository.deleteByUuid(uuid);
-        if (!movie.equals(uuid)){
-            throw new NotFoundException("UUID not valid " + uuid);
+        Response movieDeleteResponse = movieRepository.deleteByUuid(uuid);
+        if (movieDeleteResponse.getStatus() == Response.Status.OK.getStatusCode()) {
+            return Response.ok("Movie successfully deleted").build();
+        } else if (movieDeleteResponse.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+            return Response.status(Response.Status.NOT_FOUND)
+                .entity("No movie found with UUID " + uuid)
+                .build();
         }
-        return Response.ok("Successfully deleted").build();
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            .entity("Failed to delete movie with UUID: " + uuid)
+            .build();
     }
 }
 
