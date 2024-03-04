@@ -1,6 +1,7 @@
 package com.example.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.io.Serializable;
@@ -8,13 +9,19 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Entity
-@Table(name = "movie", schema = "movies")
+@Table(name = "movie", schema = "movies",
+    indexes = @Index(name = "idx_uuid", columnList = "uuid", unique = true))
 public class Movie implements Serializable {
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "uuid", nullable = false,updatable = false)
+    @Column(name = "id")
+    private Integer id;
+
+    @Column(name = "uuid", nullable = false,updatable = false, unique = true, columnDefinition = "BINARY(16)")
     private UUID uuid;
 
+    @NotNull
     @Size(max = 100)
     @Column(name = "title", length = 100)
     private String title;
@@ -22,6 +29,7 @@ public class Movie implements Serializable {
     @Column(name = "releaseYear")
     private Integer releaseYear;
 
+    @NotNull
     @Size(max = 50)
     @Column(name = "director", length = 50)
     private String director;
@@ -81,6 +89,13 @@ public class Movie implements Serializable {
 
     public void setGenre(String genre) {
         this.genre = genre;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (uuid == null) {
+            uuid = UUID.randomUUID();
+        }
     }
 
     @Override
