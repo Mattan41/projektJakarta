@@ -2,10 +2,8 @@ package com.example.resource;
 
 import com.example.dto.MovieDto;
 import com.example.dto.Movies;
-import com.example.entity.Movie;
 import com.example.repository.MovieRepository;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
@@ -55,6 +53,22 @@ public class MovieResource {
     public Response create(@Valid MovieDto movieDto){
         var movie = movieRepository.add(MovieDto.map(movieDto));
         return Response.created(URI.create(uriInfo.getAbsolutePath().toString() + "/" + movie.getUuid())).build();
+    }
+
+    @DELETE
+    @Path("/{uuid}")
+    public Response delete(@PathParam("uuid") UUID uuid) {
+        Response movieDeleteResponse = movieRepository.deleteByUuid(uuid);
+        if (movieDeleteResponse.getStatus() == Response.Status.OK.getStatusCode()) {
+            return Response.ok("Movie successfully deleted").build();
+        } else if (movieDeleteResponse.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+            return Response.status(Response.Status.NOT_FOUND)
+                .entity("No movie found with UUID " + uuid)
+                .build();
+        }
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            .entity("Failed to delete movie with UUID: " + uuid)
+            .build();
     }
 
     @PUT
