@@ -18,7 +18,6 @@ public class Movie implements Serializable {
     @Column(name = "id")
     private Integer id;
 
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "uuid", nullable = false,updatable = false, unique = true, columnDefinition = "BINARY(16)")
     private UUID uuid;
 
@@ -90,6 +89,13 @@ public class Movie implements Serializable {
 
     public void setGenre(String genre) {
         this.genre = genre;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (uuid == null) {
+            uuid = UUID.randomUUID();
+        }
     }
 
     @Override
