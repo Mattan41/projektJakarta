@@ -9,3 +9,4 @@ VALUES (UUID_TO_BIN(UUID()), 'The Shawshank Redemption', 1994, 'Frank Darabont',
        (UUID_TO_BIN(UUID()), 'Titanic', 1997, 'James Cameron', 7.8, 'Romance'),
        (UUID_TO_BIN(UUID()), 'The Social Network', 2010, 'David Fincher', 7.7, 'Biography'),
        (UUID_TO_BIN(UUID()), 'La La Land', 2016, 'Damien Chazelle', 8.0, 'Musical');
+select * from movie;

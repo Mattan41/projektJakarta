@@ -10,6 +10,7 @@ import jakarta.ws.rs.core.Response;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -32,23 +33,31 @@ public class MovieRepository implements Serializable {
         return movie;
     }
 
-    public Movie findById(int id) {
-        return entityManager.find(Movie.class, id);
-    }
 
-    public Movie findByUuid(UUID uuid) {
+    public Optional<Movie> getByUuid(UUID uuid) {
         try {
-            return entityManager.createQuery("SELECT m FROM Movie m WHERE m.uuid = :uuid", Movie.class)
+            Movie movie = entityManager.createQuery("SELECT m FROM Movie m WHERE m.uuid = :uuid", Movie.class)
                 .setParameter("uuid", uuid)
                 .getSingleResult();
+            return Optional.ofNullable(movie);
         } catch (NoResultException e) {
-            return null;
+            return Optional.empty();
         }
     }
 
+//    public Movie findByUuid(UUID uuid) {
+//        try {
+//            return entityManager.createQuery("SELECT m FROM Movie m WHERE m.uuid = :uuid", Movie.class)
+//                .setParameter("uuid", uuid)
+//                .getSingleResult();
+//        } catch (NoResultException e) {
+//            return null;
+//        }
+//    }
+
     @Transactional
     public void replace(UUID uuid, Movie updatedMovie) {
-        Movie movie = findByUuid(uuid);
+        Movie movie = getByUuid(uuid).get();
         movie.setUuid(uuid);
         movie.setTitle(updatedMovie.getTitle());
         movie.setDirector(updatedMovie.getDirector());
@@ -59,15 +68,8 @@ public class MovieRepository implements Serializable {
     }
 
     @Transactional
-    public Response deleteByUuid(UUID uuid) {
-        Movie movie = findByUuid(uuid);
-        if (movie != null) {
-            entityManager.remove(movie);
-            return Response.ok("Movie successfully deleted").build();
-        } else {
-            return Response.status(Response.Status.NOT_FOUND)
-                .entity("No movie found with UUID " + uuid)
-                .build();
-        }
+    public void deleteByUuid(UUID uuid) {
+        Movie movie = getByUuid(uuid).get();
+        entityManager.remove(movie);
     }
 }
