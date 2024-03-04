@@ -1,33 +1,26 @@
-package com.example.projektjakarta;
-
+package com.example.resource;
 
 import com.example.dto.Movies;
-
-import org.junit.jupiter.api.*;
+import com.example.dto.MovieDto;
 import io.restassured.RestAssured;
+import jakarta.ws.rs.core.MediaType;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-
-
 import java.io.File;
-
 import java.util.List;
-
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-
-
 @Testcontainers
-class MovieResourceTest {
-
-
+class MovieResourceTestIT {
         //https://java.testcontainers.org/modules/docker_compose/#adding-this-module-to-your-project-dependencies
         @Container
         public static ComposeContainer environment =
@@ -38,6 +31,7 @@ class MovieResourceTest {
 
         static String host;
         static int port;
+        static Movies movies;
 
         @BeforeAll
         static void beforeAll() {
@@ -52,14 +46,32 @@ class MovieResourceTest {
         }
 
 
-//    @Test
-//    @DisplayName("Test name")
-//    void testName() {
-//        Movies movies = RestAssured.get("/movies").then()
-//            .statusCode(404)
-//            .extract()
-//            .as(Movies.class);
-//        assertEquals(List.of(), movies.movieDtos());
-//    }
+
+
+    @Test
+    @DisplayName("given movies is empty when calling get movies then return an empty list")
+    void givenMoviesIsEmptyWhenCallingGetMoviesThenReturnAnEmptyList() {
+
+        Movies movies = RestAssured.get("/movies").then()
+            .extract()
+            .as(Movies.class);
+
+        assertEquals(List.of(), movies.movieDtos());
+    }
+
+    @Test
+    @DisplayName("request read should return status200")
+    void requestReadShouldReturnStatus200() {
+        movies = RestAssured.get("/movies").then()
+            .statusCode(200)
+            .extract()
+            .as(Movies.class);
 
     }
+
+
+    }
+
+
+
+

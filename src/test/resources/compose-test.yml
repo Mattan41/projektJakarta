@@ -18,7 +18,7 @@ services:
       context: ../../../.
       dockerfile: Dockerfile
     environment:
-      DB_CONNECTION_URL: mysql://db:3306/movies
+      DB_CONNECTION_URL: jdbc:mysql://db:3306/movies
       DB_USERNAME: root
       DB_PASSWORD: password
     depends_on:
