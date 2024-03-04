@@ -43,12 +43,15 @@ public class MovieResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{uuid}")
-    public MovieDto one(@PathParam("uuid") UUID uuid) {
-        Optional<Movie> m = movieRepository.getByUuid(uuid);
-        if (m.isPresent()) {
-            Movie movie = m.get();
-            return MovieDto.map(movie);
-        } else throw new NotFoundException("No movie found with UUID " + uuid);
+    public Response one(@PathParam("uuid") UUID uuid) {
+            Optional<Movie> m = movieRepository.getByUuid(uuid);
+            if (m.isPresent()) {
+                Movie movie = m.get();
+                return Response.ok(MovieDto.map(movie)).build();
+            }
+            return Response.status(Response.Status.NOT_FOUND)
+                .entity("No movie found with UUID " + uuid)
+                .build();
     }
 
     @POST
