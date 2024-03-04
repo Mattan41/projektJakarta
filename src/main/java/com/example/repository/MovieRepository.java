@@ -45,16 +45,6 @@ public class MovieRepository implements Serializable {
         }
     }
 
-//    public Movie findByUuid(UUID uuid) {
-//        try {
-//            return entityManager.createQuery("SELECT m FROM Movie m WHERE m.uuid = :uuid", Movie.class)
-//                .setParameter("uuid", uuid)
-//                .getSingleResult();
-//        } catch (NoResultException e) {
-//            return null;
-//        }
-//    }
-
     @Transactional
     public void replace(UUID uuid, Movie updatedMovie) {
         Movie movie = getByUuid(uuid).get();
