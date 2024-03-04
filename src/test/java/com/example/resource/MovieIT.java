@@ -68,7 +68,26 @@ class MovieResourceTestIT {
             .as(Movies.class);
 
     }
+    @Test
+    @DisplayName("Request for create response Status code 201")
+    void requestForCreateResponseStatusCode201() {
 
+            String requestBody = "{"
+                + "\"director\": \"frank Zappa\","
+                + "\"genre\": \"Horror\","
+                + "\"rating\": 3.3,"
+                + "\"releaseYear\": 1985,"
+                + "\"title\": \"Friday the 13:th\""
+                + "}";
+
+            RestAssured.given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .when()
+                .post("/movies")
+                .then()
+                .statusCode(201);
+        }
 
     }
 
