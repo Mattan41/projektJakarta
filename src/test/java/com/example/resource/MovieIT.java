@@ -1,13 +1,17 @@
 package com.example.resource;
 
+import com.example.dto.MovieDto;
 import com.example.dto.Movies;
-
+import com.example.entity.Movie;
+import com.example.repository.MovieRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
+import io.restassured.parsing.Parser;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.*;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
@@ -15,46 +19,49 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.File;
 import java.util.List;
+import java.util.UUID;
 
-
+import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Testcontainers
 class MovieResourceTestIT {
-        //https://java.testcontainers.org/modules/docker_compose/#adding-this-module-to-your-project-dependencies
-        @Container
-        public static ComposeContainer environment =
+    //https://java.testcontainers.org/modules/docker_compose/#adding-this-module-to-your-project-dependencies
+
+    @Inject
+    MovieRepository movieRepository;
+
+    @Container
+    public static ComposeContainer environment =
             new ComposeContainer(new File("src/test/resources/compose-test.yml"))
-                .withExposedService("wildfly", 8080, Wait.forHttp("/api/movies")
-                    .forStatusCode(200))
-                .withLocalCompose(true);
+                    .withExposedService("wildfly", 8080, Wait.forHttp("/api/movies")
+                            .forStatusCode(200))
+                    .withLocalCompose(true);
 
-        static String host;
-        static int port;
-        static Movies movies;
+    static String host;
+    static int port;
+    static Movies movies;
 
-        @BeforeAll
-        static void beforeAll() {
-            host = environment.getServiceHost("wildfly", 8080);
-            port = environment.getServicePort("wildfly", 8080);
-        }
+    @BeforeAll
+    static void beforeAll() {
+        host = environment.getServiceHost("wildfly", 8080);
+        port = environment.getServicePort("wildfly", 8080);
+    }
 
-        @BeforeEach
-        void before() {
-            RestAssured.baseURI = "http://" + host + "/api";
-            RestAssured.port = port;
-        }
-
-
-
+    @BeforeEach
+    void before() {
+        RestAssured.defaultParser = Parser.JSON;
+        RestAssured.baseURI = "http://" + host + "/api";
+        RestAssured.port = port;
+    }
 
     @Test
     @DisplayName("given movies is empty when calling get movies then return an empty list")
     void givenMoviesIsEmptyWhenCallingGetMoviesThenReturnAnEmptyList() {
 
         Movies movies = RestAssured.get("/movies").then()
-            .extract()
-            .as(Movies.class);
+                .extract()
+                .as(Movies.class);
 
         assertEquals(List.of(), movies.movieDtos());
     }
@@ -63,31 +70,152 @@ class MovieResourceTestIT {
     @DisplayName("request read should return status200")
     void requestReadShouldReturnStatus200() {
         movies = RestAssured.get("/movies").then()
-            .statusCode(200)
-            .extract()
-            .as(Movies.class);
+                .statusCode(200)
+                .extract()
+                .as(Movies.class);
 
     }
+
     @Test
     @DisplayName("Request for create response Status code 201")
     void requestForCreateResponseStatusCode201() {
 
-            String requestBody = "{"
-                + "\"director\": \"frank Zappa\","
-                + "\"genre\": \"Horror\","
-                + "\"rating\": 3.3,"
-                + "\"releaseYear\": 1985,"
-                + "\"title\": \"Friday the 13:th\""
-                + "}";
+        String requestBody = "{"
+            + "\"director\": \"frank Zappa\","
+            + "\"genre\": \"Horror\","
+            + "\"rating\": 3.3,"
+            + "\"releaseYear\": 1985,"
+            + "\"title\": \"Friday the 13:th\""
+            + "}";
 
-            RestAssured.given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(requestBody)
-                .when()
-                .post("/movies")
-                .then()
-                .statusCode(201);
+        RestAssured.given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(requestBody)
+            .when()
+            .post("/movies")
+            .then()
+            .statusCode(201);
+    }
+
+    @Test
+    @DisplayName("Request for create response Status code 201 and validate attributes of the movie created")
+    void requestForCreateResponseStatusCode201AndValidateAttributesOfTheMovieCreated() {
+
+        UUID uuid = UUID.randomUUID();
+        System.out.println(uuid);
+
+        Movie movie = createMovie(uuid,"frank Zappa", "Horror", 3.3f, 1985, "Friday the 13:th");
+
+        System.out.println("UUID: " + movie.getUuid());
+        String url = "/movies/" + uuid;
+        System.out.println("URL: " + url);
+
+        String requestBody = convertToJson(movie);
+
+        RestAssured.given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(requestBody)
+            .when()
+            .post("/movies")
+            .then()
+            .statusCode(201);
+
+        System.out.println("check that the movie is in the list: ");
+        MovieDto createdMovieDto = MovieDto.map(movie);
+        Movies movies = RestAssured.get("/movies").then()
+            .extract()
+            .as(Movies.class);
+
+        assertEquals(List.of(createdMovieDto), movies.movieDtos());
+        System.out.println("end check that the movie is in the list:");
+
+        MovieDto addedMovieDto = RestAssured
+            .get("/movies/" + movie.getUuid())
+            .then()
+            .statusCode(200) // Validate that the status code is 200 OK
+            .extract()
+            .as(MovieDto.class);
+
+        Movie addedMovie = MovieDto.map(addedMovieDto);
+
+         // Validate the attributes
+        assertEquals("frank Zappa", addedMovie.getDirector());
+        assertEquals("Horror", addedMovie.getGenre());
+        assertEquals(3.3, addedMovie.getRating(), 0.01);
+        assertEquals(1985, addedMovie.getReleaseYear());
+        assertEquals("Friday the 13:th", addedMovie.getTitle());
+    }
+
+    @NotNull
+    private static Movie createMovie(UUID uuid, String director, String genre, float rating, int year, String title) {
+        Movie movie = new Movie();
+        movie.setUuid(uuid);
+        movie.setDirector(director);
+        movie.setGenre(genre);
+        movie.setRating(rating);
+        movie.setReleaseYear(year);
+        movie.setTitle(title);
+        return movie;
+    }
+
+    @Test
+    @DisplayName("shouldUpdateMovieAndReturnUpdatedMovieDetails")
+    void shouldUpdateMovieAndReturnUpdatedMovieDetails() {
+        UUID uuid = UUID.randomUUID();
+        // Create a new movie
+        Movie movie = createMovie(uuid,"frank Zappa", "Horror", 3.3f, 1985, "Friday the 13:th");
+
+        String requestBody = convertToJson(movie);
+
+        RestAssured.given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(requestBody)
+            .when()
+            .post("/movies")
+            .then()
+            .statusCode(201);
+
+        Movie updateMovie = createMovie(uuid,"Updated Director", "Updated Genre", 4.5f, 200, "Updated Title");
+        String requestBody2 = convertToJson(updateMovie);
+
+        RestAssured.given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(requestBody2)
+            .when()
+            .put("/movies" + movie.getUuid())
+            .then()
+            .statusCode(201);
+
+
+        MovieDto updatedMovieDto = RestAssured
+            .get("/movies/" + movie.getUuid())
+            .then()
+            .statusCode(200) // Validate that the status code is 200 OK
+            .extract()
+            .as(MovieDto.class);
+
+        Movie updatedMovie = MovieDto.map(updatedMovieDto);
+
+
+
+        // Validate the attributes
+        assertEquals("Updated Director", updatedMovie.getDirector());
+        assertEquals("Updated Genre", updatedMovie.getGenre());
+        assertEquals(4.5, updatedMovie.getRating(), 0.01); // Compare floating point numbers with tolerance
+        assertEquals(2000, updatedMovie.getReleaseYear());
+        assertEquals("Updated Title", updatedMovie.getTitle());
+    }
+
+    private static String convertToJson(Movie movie) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        String requestBody = null;
+        try {
+            requestBody = objectMapper.writeValueAsString(movie);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
+        return requestBody;
+    }
 
 
 }

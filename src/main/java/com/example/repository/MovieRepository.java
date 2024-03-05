@@ -29,8 +29,8 @@ public class MovieRepository implements Serializable {
 
     @Transactional
     public Movie add(Movie movie) {
-        UUID uuid = UUID.randomUUID();
-        movie.setUuid(uuid);
+//        UUID uuid = UUID.randomUUID();
+//        movie.setUuid(uuid);
         entityManager.merge(movie);
         return movie;
     }
