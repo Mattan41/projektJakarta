@@ -6,7 +6,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.core.Response;
 
 import java.io.Serializable;
 import java.util.List;
@@ -20,7 +19,6 @@ public class MovieRepository implements Serializable {
     EntityManager entityManager;
 
 
-
     public List<Movie> getAll() {
         return entityManager
             .createQuery("select m from Movie m", Movie.class)
@@ -29,8 +27,6 @@ public class MovieRepository implements Serializable {
 
     @Transactional
     public Movie add(Movie movie) {
-//        UUID uuid = UUID.randomUUID();
-//        movie.setUuid(uuid);
         entityManager.merge(movie);
         return movie;
     }
