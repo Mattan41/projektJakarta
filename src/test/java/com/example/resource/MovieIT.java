@@ -175,16 +175,22 @@ class MovieResourceTestIT {
             .then()
             .statusCode(201);
 
-        Movie updateMovie = createMovie(uuid,"Updated Director", "Updated Genre", 4.5f, 200, "Updated Title");
-        String requestBody2 = convertToJson(updateMovie);
+
+        String requestBody2 = "{"
+            + "\"director\": \"Updated Director\","
+            + "\"genre\": \"Updated Genre\","
+            + "\"rating\": 4.5,"
+            + "\"releaseYear\": 2000,"
+            + "\"title\": \"Updated Title\""
+            + "}";
 
         RestAssured.given()
             .contentType(MediaType.APPLICATION_JSON)
             .body(requestBody2)
             .when()
-            .put("/movies" + movie.getUuid())
+            .put("/movies/" + movie.getUuid())
             .then()
-            .statusCode(201);
+            .statusCode(200);
 
 
         MovieDto updatedMovieDto = RestAssured
@@ -195,8 +201,6 @@ class MovieResourceTestIT {
             .as(MovieDto.class);
 
         Movie updatedMovie = MovieDto.map(updatedMovieDto);
-
-
 
         // Validate the attributes
         assertEquals("Updated Director", updatedMovie.getDirector());
