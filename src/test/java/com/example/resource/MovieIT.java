@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.parsing.Parser;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.core.MediaType;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
@@ -26,6 +27,7 @@ import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @Testcontainers
 class MovieResourceTestIT {
@@ -67,8 +69,25 @@ class MovieResourceTestIT {
         Movies movies = RestAssured.get("/movies").then()
             .extract()
             .as(Movies.class);
-        movies.movieDtos().clear();
+//        movies.movieDtos().clear();
         assertEquals(List.of(),movies.movieDtos());
+    }
+    @Test
+    @DisplayName("given three movies are present when calling get movies then return a list of three movies")
+    void givenMoviesArePresentWhenCallingGetMoviesThenReturnListOfMovies() {
+        UUID uuid1 = UUID.randomUUID();
+        UUID uuid2 = UUID.randomUUID();
+        UUID uuid3 = UUID.randomUUID();
+        createMovie(uuid1, "Frank Zappa", "Horror", 3.3f, 1985, "Friday the 13:th");
+        createMovie(uuid2, "Steven Spielberg", "Adventure", 4.5f, 1993, "Jurassic Park");
+        createMovie(uuid3, "Christopher Nolan", "Sci-Fi", 4.7f, 2010, "Inception");
+
+        Movies movies = RestAssured.get("/movies").then()
+            .extract()
+            .as(Movies.class);
+        assertFalse(movies.movieDtos().isEmpty());
+        assertEquals(3, movies.movieDtos().size());
+
     }
 
     @Test
@@ -81,6 +100,19 @@ class MovieResourceTestIT {
 
     }
 
+    @Test
+    @DisplayName("given movie with UUID does not exist when calling get movie then throw NotFoundException")
+    void givenMovieWithUUIDDoesNotExistWhenCallingGetMovieThenThrowNotFoundException() {
+        UUID uuid = UUID.randomUUID(); // This UUID does not exist in the database
+
+        RestAssured.get("/movies/" + uuid).then()
+            .statusCode(404)
+            .body(equalTo("No movie found with UUID " + uuid));
+    }
+
+
+
+    //POST
     @Test
     @DisplayName("Request for create response Status code 201")
     void requestForCreateResponseStatusCode201() {
@@ -134,6 +166,7 @@ class MovieResourceTestIT {
         assertEquals("Friday the 13:th", addedMovie.getTitle());
     }
 
+    //PUT
     @Test
     @DisplayName("shouldUpdateMovieAndReturnUpdatedMovieDetails")
     void shouldUpdateMovieAndReturnUpdatedMovieDetails() {
