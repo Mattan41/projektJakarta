@@ -163,7 +163,8 @@ class MovieResourceTestIT {
             .when()
             .put("/movies/" + movie.getUuid())
             .then()
-            .statusCode(200);
+            .statusCode(200)
+            .body(equalTo("Successfully updated"));
 
         MovieDto updatedMovieDto = RestAssured
             .get("/movies/" + movie.getUuid())
