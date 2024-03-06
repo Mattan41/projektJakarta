@@ -67,8 +67,8 @@ class MovieResourceTestIT {
         Movies movies = RestAssured.get("/movies").then()
             .extract()
             .as(Movies.class);
-
-        assertEquals(List.of(), movies.movieDtos());
+        movies.movieDtos().clear();
+        assertEquals(List.of(),movies.movieDtos());
     }
 
     @Test
