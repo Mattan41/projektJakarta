@@ -10,6 +10,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "movie", schema = "movies",
+    uniqueConstraints = @UniqueConstraint(columnNames = "uuid"),
     indexes = @Index(name = "idx_uuid", columnList = "uuid", unique = true))
 public class Movie implements Serializable {
 
@@ -18,7 +19,7 @@ public class Movie implements Serializable {
     @Column(name = "id")
     private Integer id;
 
-    @Column(name = "uuid", nullable = false,updatable = false, unique = true, columnDefinition = "BINARY(16)")
+    @Column(name = "uuid", nullable = false,updatable = false, columnDefinition = "BINARY(16)")
     private UUID uuid;
 
     @NotNull
