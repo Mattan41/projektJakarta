@@ -1,6 +1,8 @@
 package com.example.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -22,6 +24,7 @@ public class Movie implements Serializable {
     private UUID uuid;
 
     @NotNull
+    @NotEmpty
     @Size(max = 100)
     @Column(name = "title", length = 100)
     private String title;
@@ -30,6 +33,7 @@ public class Movie implements Serializable {
     private Integer releaseYear;
 
     @NotNull
+    @NotEmpty
     @Size(max = 50)
     @Column(name = "director", length = 50)
     private String director;
