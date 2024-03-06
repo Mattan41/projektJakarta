@@ -24,6 +24,7 @@ import java.io.File;
 import java.util.List;
 import java.util.UUID;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Testcontainers
@@ -57,6 +58,8 @@ class MovieResourceTestIT {
         RestAssured.port = port;
     }
 
+
+    //GET
     @Test
     @DisplayName("given movies is empty when calling get movies then return an empty list")
     void givenMoviesIsEmptyWhenCallingGetMoviesThenReturnAnEmptyList() {
@@ -171,12 +174,39 @@ class MovieResourceTestIT {
 
         Movie updatedMovie = MovieDto.map(updatedMovieDto);
 
+        assertEquals(uuid, updatedMovie.getUuid());
         assertEquals("Updated Director", updatedMovie.getDirector());
         assertEquals("Updated Genre", updatedMovie.getGenre());
         assertEquals(4.5, updatedMovie.getRating(), 0.01); // Compare floating point numbers with tolerance
         assertEquals(2000, updatedMovie.getReleaseYear());
         assertEquals("Updated Title", updatedMovie.getTitle());
     }
+
+
+    @Test
+    @DisplayName("shouldReturnNotFoundWhenUpdatingNonExistingMovie")
+    void shouldReturnNotFoundWhenUpdatingNonExistingMovie() {
+        UUID uuid = UUID.randomUUID();
+        String requestBody = "{"
+            + "\"director\": \"Updated Director\","
+            + "\"genre\": \"Updated Genre\","
+            + "\"rating\": 4.5,"
+            + "\"releaseYear\": 2000,"
+            + "\"title\": \"Updated Title\""
+            + "}";
+
+        RestAssured.given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(requestBody)
+            .when()
+            .put("/movies/" + uuid)
+            .then()
+            .statusCode(404)
+            .body(equalTo("No movie found with UUID " + uuid));
+
+    }
+
+
 
     @NotNull
     private static Movie createMovie(UUID uuid, String director, String genre, float rating, int year, String title) {
