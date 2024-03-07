@@ -95,6 +95,12 @@
       <artifactId>logback-classic</artifactId>
       <version>1.4.14</version> <!-- Anpassa versionen efter behov -->
     </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
