@@ -11,10 +11,7 @@ import io.restassured.parsing.Parser;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
@@ -58,6 +55,18 @@ class MovieResourceTestIT {
         RestAssured.port = port;
     }
 
+    @AfterEach
+    void cleanup() {
+        Movies movies = RestAssured.get("/movies").then()
+            .extract()
+            .as(Movies.class);
+
+        for (MovieDto movieDto : movies.movieDtos()) {
+            RestAssured.delete("/movies/" + movieDto.uuid())
+                .then()
+                .statusCode(200);
+        }
+    }
 
     //GET
     @Test
