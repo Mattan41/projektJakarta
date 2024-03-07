@@ -10,7 +10,6 @@ import io.restassured.RestAssured;
 import io.restassured.parsing.Parser;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -26,11 +25,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @Testcontainers
 class MovieResourceTestIT {
@@ -292,7 +289,6 @@ class MovieResourceTestIT {
                 .body("errors.violationMessage", hasItems(errorMessage));
     }
 
-    //DELETE
     //DELETE
     @Test
     @DisplayName("Delete should return status 200")
