@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @Testcontainers
 class MovieResourceTestIT {
@@ -85,6 +86,37 @@ class MovieResourceTestIT {
     }
 
     @Test
+    @DisplayName("given three movies are present when calling get movies then return a list of three movies")
+    void givenMoviesArePresentWhenCallingGetMoviesThenReturnListOfMovies() {
+        UUID uuid1 = UUID.randomUUID();
+        UUID uuid2 = UUID.randomUUID();
+        UUID uuid3 = UUID.randomUUID();
+        Movie movie1 = createMovie(uuid1, "Frank Zappa", "Horror", 3.3f, 1985, "Friday the 13:th");
+        Movie movie2 = createMovie(uuid2, "Steven Spielberg", "Adventure", 4.5f, 1993, "Jurassic Park");
+        Movie movie3 = createMovie(uuid3, "Christopher Nolan", "Sci-Fi", 4.7f, 2010, "Inception");
+
+        List<Movie> moviesList = List.of(movie1, movie2, movie3);
+
+        for (Movie movie : moviesList) {
+            String requestBody = convertToJson(movie);
+
+            RestAssured.given()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(requestBody)
+                    .when()
+                    .post("/movies")
+                    .then()
+                    .statusCode(201);
+        }
+        Movies movies = RestAssured.get("/movies").then()
+                .extract()
+                .as(Movies.class);
+        assertFalse(movies.movieDtos().isEmpty());
+        assertEquals(3, movies.movieDtos().size());
+
+    }
+
+    @Test
     @DisplayName("request read should return status200")
     void requestReadShouldReturnStatus200() {
         movies = RestAssured.get("/movies").then()
@@ -93,6 +125,18 @@ class MovieResourceTestIT {
                 .as(Movies.class);
 
     }
+
+
+    @Test
+    @DisplayName("given movie with UUID does not exist when calling get movie then throw NotFoundException")
+    void givenMovieWithUUIDDoesNotExistWhenCallingGetMovieThenThrowNotFoundException() {
+        UUID uuid = UUID.randomUUID(); // This UUID does not exist in the database
+
+        RestAssured.get("/movies/" + uuid).then()
+                .statusCode(404)
+                .body(equalTo("No movie found with UUID " + uuid));
+    }
+
 
     //POST
     @Test
@@ -318,8 +362,7 @@ class MovieResourceTestIT {
     }
 
 
-    //Extracted Methods
-
+    //EXTRACTED METHODS
     @NotNull
     private static Movie createMovie(UUID uuid, String director, String genre, float rating, int year, String title) {
         Movie movie = new Movie();
