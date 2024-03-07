@@ -1,4 +1,4 @@
-package com.example.resource.dto;
+package com.example.dto;
 
 import com.example.dto.MovieDto;
 import jakarta.validation.Validation;
