@@ -10,14 +10,11 @@ import io.restassured.RestAssured;
 import io.restassured.parsing.Parser;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
@@ -30,11 +27,6 @@ import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.*;
-
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 
 @Testcontainers
 class MovieResourceTestIT {
@@ -45,10 +37,10 @@ class MovieResourceTestIT {
 
     @Container
     public static ComposeContainer environment =
-        new ComposeContainer(new File("src/test/resources/compose-test.yml"))
-            .withExposedService("wildfly", 8080, Wait.forHttp("/api/movies")
-                .forStatusCode(200))
-            .withLocalCompose(true);
+            new ComposeContainer(new File("src/test/resources/compose-test.yml"))
+                    .withExposedService("wildfly", 8080, Wait.forHttp("/api/movies")
+                            .forStatusCode(200))
+                    .withLocalCompose(true);
 
     static String host;
     static int port;
@@ -70,13 +62,13 @@ class MovieResourceTestIT {
     @AfterEach
     void cleanup() {
         Movies movies = RestAssured.get("/movies").then()
-            .extract()
-            .as(Movies.class);
+                .extract()
+                .as(Movies.class);
 
         for (MovieDto movieDto : movies.movieDtos()) {
             RestAssured.delete("/movies/" + movieDto.uuid())
-                .then()
-                .statusCode(200);
+                    .then()
+                    .statusCode(200);
         }
     }
 
@@ -86,8 +78,8 @@ class MovieResourceTestIT {
     void givenMoviesIsEmptyWhenCallingGetMoviesThenReturnAnEmptyList() {
 
         Movies movies = RestAssured.get("/movies").then()
-            .extract()
-            .as(Movies.class);
+                .extract()
+                .as(Movies.class);
         movies.movieDtos().clear();
         assertEquals(List.of(), movies.movieDtos());
     }
@@ -96,9 +88,9 @@ class MovieResourceTestIT {
     @DisplayName("request read should return status200")
     void requestReadShouldReturnStatus200() {
         movies = RestAssured.get("/movies").then()
-            .statusCode(200)
-            .extract()
-            .as(Movies.class);
+                .statusCode(200)
+                .extract()
+                .as(Movies.class);
 
     }
 
@@ -108,21 +100,21 @@ class MovieResourceTestIT {
     void requestForCreateResponseStatusCode201WithBodyMessage() {
 
         String requestBody = "{"
-            + "\"director\": \"frank Zappa\","
-            + "\"genre\": \"Horror\","
-            + "\"rating\": 3.3,"
-            + "\"releaseYear\": 1985,"
-            + "\"title\": \"Friday the 13:th\""
-            + "}";
+                + "\"director\": \"frank Zappa\","
+                + "\"genre\": \"Horror\","
+                + "\"rating\": 3.3,"
+                + "\"releaseYear\": 1985,"
+                + "\"title\": \"Friday the 13:th\""
+                + "}";
 
         RestAssured.given()
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(requestBody)
-            .when()
-            .post("/movies")
-            .then()
-            .statusCode(201)
-            .body(equalTo("Movie successfully added"));
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .when()
+                .post("/movies")
+                .then()
+                .statusCode(201)
+                .body(equalTo("Movie successfully added"));
     }
 
     @Test
@@ -134,19 +126,19 @@ class MovieResourceTestIT {
         String requestBody = convertToJson(movie);
 
         RestAssured.given()
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(requestBody)
-            .when()
-            .post("/movies")
-            .then()
-            .statusCode(201);
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .when()
+                .post("/movies")
+                .then()
+                .statusCode(201);
 
         MovieDto addedMovieDto = RestAssured
-            .get("/movies/" + movie.getUuid())
-            .then()
-            .statusCode(200) // Validate that the status code is 200 OK
-            .extract()
-            .as(MovieDto.class);
+                .get("/movies/" + movie.getUuid())
+                .then()
+                .statusCode(200) // Validate that the status code is 200 OK
+                .extract()
+                .as(MovieDto.class);
 
         Movie addedMovie = MovieDto.map(addedMovieDto);
 
@@ -157,43 +149,6 @@ class MovieResourceTestIT {
         assertEquals("Friday the 13:th", addedMovie.getTitle());
     }
 
-    @ParameterizedTest
-    @MethodSource("provideInvalidTitleData")
-    @DisplayName("given movie with invalid title should return status 400 and Validation error message")
-    void givenMovieWithInvalidTitleShouldReturnStatus400AndValidationErrorMessage(String title, String errorMessage) {
-        String requestBody = getRequestBodyForMissingTitle(title);
-
-        RestAssured.given()
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(requestBody)
-            .when()
-            .post("/movies")
-            .then()
-            .statusCode(400)
-            .body("title", equalTo("Validation Errors"))
-            .body("errors.field", hasItem("title"))
-            .body("errors.violationMessage", hasItems(errorMessage));
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideInvalidDirectorData")
-    @DisplayName("given movie with invalid director should return status 400 and Validation error message")
-    void givenMovieWithInvalidDirectorShouldReturnStatus400AndValidationErrorMessage(String director, String errorMessage) {
-        String requestBody = getRequestBodyForMissingDirector(director);
-
-        RestAssured.given()
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(requestBody)
-            .when()
-            .post("/movies")
-            .then()
-            .statusCode(400)
-            .body("title", equalTo("Validation Errors"))
-            .body("errors.field", hasItem("director"))
-            .body("errors.violationMessage", hasItems(errorMessage));
-    }
-
-
     //PUT
     @Test
     @DisplayName("shouldUpdateMovieAndReturnUpdatedMovieDetails")
@@ -203,36 +158,36 @@ class MovieResourceTestIT {
         String requestBody = convertToJson(movie);
 
         RestAssured.given()
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(requestBody)
-            .when()
-            .post("/movies")
-            .then()
-            .statusCode(201);
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .when()
+                .post("/movies")
+                .then()
+                .statusCode(201);
 
         String requestBody2 = "{"
-            + "\"director\": \"Updated Director\","
-            + "\"genre\": \"Updated Genre\","
-            + "\"rating\": 4.5,"
-            + "\"releaseYear\": 2000,"
-            + "\"title\": \"Updated Title\""
-            + "}";
+                + "\"director\": \"Updated Director\","
+                + "\"genre\": \"Updated Genre\","
+                + "\"rating\": 4.5,"
+                + "\"releaseYear\": 2000,"
+                + "\"title\": \"Updated Title\""
+                + "}";
 
         RestAssured.given()
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(requestBody2)
-            .when()
-            .put("/movies/" + movie.getUuid())
-            .then()
-            .statusCode(200)
-            .body(equalTo("Successfully updated"));
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody2)
+                .when()
+                .put("/movies/" + movie.getUuid())
+                .then()
+                .statusCode(200)
+                .body(equalTo("Successfully updated"));
 
         MovieDto updatedMovieDto = RestAssured
-            .get("/movies/" + movie.getUuid())
-            .then()
-            .statusCode(200)
-            .extract()
-            .as(MovieDto.class);
+                .get("/movies/" + movie.getUuid())
+                .then()
+                .statusCode(200)
+                .extract()
+                .as(MovieDto.class);
 
         Movie updatedMovie = MovieDto.map(updatedMovieDto);
 
@@ -249,24 +204,61 @@ class MovieResourceTestIT {
     void shouldReturnNotFoundWhenUpdatingNonExistingMovie() {
         UUID uuid = UUID.randomUUID();
         String requestBody = "{"
-            + "\"director\": \"Updated Director\","
-            + "\"genre\": \"Updated Genre\","
-            + "\"rating\": 4.5,"
-            + "\"releaseYear\": 2000,"
-            + "\"title\": \"Updated Title\""
-            + "}";
+                + "\"director\": \"Updated Director\","
+                + "\"genre\": \"Updated Genre\","
+                + "\"rating\": 4.5,"
+                + "\"releaseYear\": 2000,"
+                + "\"title\": \"Updated Title\""
+                + "}";
 
         RestAssured.given()
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(requestBody)
-            .when()
-            .put("/movies/" + uuid)
-            .then()
-            .statusCode(404)
-            .body(equalTo("No movie found with UUID " + uuid));
-//DELETE
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .when()
+                .put("/movies/" + uuid)
+                .then()
+                .statusCode(404)
+                .body(equalTo("No movie found with UUID " + uuid));
+
     }
 
+    @ParameterizedTest
+    @MethodSource("provideInvalidTitleData")
+    @DisplayName("given movie with invalid title should return status 400 and Validation error message")
+    void givenMovieWithInvalidTitleShouldReturnStatus400AndValidationErrorMessage(String title, String errorMessage) {
+        String requestBody = getRequestBodyForMissingTitle(title);
+
+        RestAssured.given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .when()
+                .post("/movies")
+                .then()
+                .statusCode(400)
+                .body("title", equalTo("Validation Errors"))
+                .body("errors.field", hasItem("title"))
+                .body("errors.violationMessage", hasItems(errorMessage));
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideInvalidDirectorData")
+    @DisplayName("given movie with invalid director should return status 400 and Validation error message")
+    void givenMovieWithInvalidDirectorShouldReturnStatus400AndValidationErrorMessage(String director, String errorMessage) {
+        String requestBody = getRequestBodyForMissingDirector(director);
+
+        RestAssured.given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .when()
+                .post("/movies")
+                .then()
+                .statusCode(400)
+                .body("title", equalTo("Validation Errors"))
+                .body("errors.field", hasItem("director"))
+                .body("errors.violationMessage", hasItems(errorMessage));
+    }
+
+    //DELETE
     @Test
     @DisplayName("Delete should return status 200")
     void deleteShouldReturnStatus200() {
@@ -276,18 +268,18 @@ class MovieResourceTestIT {
         String requestBody = convertToJson(movie);
 
         RestAssured.given()
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(requestBody).when()
-            .post("/movies/")
-            .then()
-            .statusCode(201);
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody).when()
+                .post("/movies/")
+                .then()
+                .statusCode(201);
 
         RestAssured.given()
-            .when()
-            .delete("/movies/" + movie.getUuid())
-            .then()
-            .statusCode(200 )
-            .body(equalTo("Successfully deleted"));
+                .when()
+                .delete("/movies/" + movie.getUuid())
+                .then()
+                .statusCode(200)
+                .body(equalTo("Successfully deleted"));
 
     }
 
@@ -299,17 +291,17 @@ class MovieResourceTestIT {
         String requestBody = convertToJson(movie);
 
         RestAssured.given()
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(requestBody).when()
-            .post("/movies/")
-            .then()
-            .statusCode(201);
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody).when()
+                .post("/movies/")
+                .then()
+                .statusCode(201);
 
         RestAssured.given()
-            .when()
-            .delete("/movies/" )
-            .then()
-            .statusCode(405 );
+                .when()
+                .delete("/movies/")
+                .then()
+                .statusCode(405);
 
     }
 
@@ -318,14 +310,12 @@ class MovieResourceTestIT {
     void deleteWithWrongUuidShouldReturn404() {
         UUID uuid = UUID.randomUUID();
         RestAssured.given()
-            .when()
-            .delete("/movies/" + uuid)
-            .then()
-            .statusCode(404 )
-            .body(equalTo("No movie found with UUID " + uuid));
+                .when()
+                .delete("/movies/" + uuid)
+                .then()
+                .statusCode(404)
+                .body(equalTo("No movie found with UUID " + uuid));
     }
-
-
 
 
     //Extracted Methods
@@ -358,19 +348,19 @@ class MovieResourceTestIT {
         String requestBody;
         if (director == null) {
             requestBody = "{"
-                + "\"genre\": \"Horror\","
-                + "\"rating\": 3.3,"
-                + "\"releaseYear\": 1985,"
-                + "\"title\": \"Friday the 13:th\""
-                + "}";
+                    + "\"genre\": \"Horror\","
+                    + "\"rating\": 3.3,"
+                    + "\"releaseYear\": 1985,"
+                    + "\"title\": \"Friday the 13:th\""
+                    + "}";
         } else {
             requestBody = "{"
-                + "\"director\": \"" + director + "\","
-                + "\"genre\": \"Horror\","
-                + "\"rating\": 3.3,"
-                + "\"releaseYear\": 1985,"
-                + "\"title\": \"Friday the 13:th\""
-                + "}";
+                    + "\"director\": \"" + director + "\","
+                    + "\"genre\": \"Horror\","
+                    + "\"rating\": 3.3,"
+                    + "\"releaseYear\": 1985,"
+                    + "\"title\": \"Friday the 13:th\""
+                    + "}";
         }
         return requestBody;
     }
@@ -380,34 +370,34 @@ class MovieResourceTestIT {
         String requestBody;
         if (title == null) {
             requestBody = "{"
-                + "\"director\": \"frank Zappa\","
-                + "\"genre\": \"Horror\","
-                + "\"rating\": 3.3,"
-                + "\"releaseYear\": 1985"
-                + "}";
+                    + "\"director\": \"frank Zappa\","
+                    + "\"genre\": \"Horror\","
+                    + "\"rating\": 3.3,"
+                    + "\"releaseYear\": 1985"
+                    + "}";
         } else {
             requestBody = "{"
-                + "\"director\": \"frank Zappa\","
-                + "\"genre\": \"Horror\","
-                + "\"rating\": 3.3,"
-                + "\"releaseYear\": 1985,"
-                + "\"title\": \"" + title + "\""
-                + "}";
+                    + "\"director\": \"frank Zappa\","
+                    + "\"genre\": \"Horror\","
+                    + "\"rating\": 3.3,"
+                    + "\"releaseYear\": 1985,"
+                    + "\"title\": \"" + title + "\""
+                    + "}";
         }
         return requestBody;
     }
 
     private static Stream<Arguments> provideInvalidDirectorData() {
         return Stream.of(
-            Arguments.of("", "Director missing"),
-            Arguments.of(null, "Director missing")
+                Arguments.of("", "Director missing"),
+                Arguments.of(null, "Director missing")
         );
     }
 
     private static Stream<Arguments> provideInvalidTitleData() {
         return Stream.of(
-            Arguments.of("", "Title missing"),
-            Arguments.of(null, "Title missing")
+                Arguments.of("", "Title missing"),
+                Arguments.of(null, "Title missing")
         );
     }
 
