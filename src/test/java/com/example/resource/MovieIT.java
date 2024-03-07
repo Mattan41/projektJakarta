@@ -258,24 +258,12 @@ class MovieResourceTestIT {
     @DisplayName("Delete with wrong uuid should return 404")
     void deleteWithWrongUuidShouldReturn404() {
         UUID uuid = UUID.randomUUID();
-        Movie movie = createMovie(uuid, "frank Zappa", "Horror", 3.3f, 1985, "Friday the 13:th");
-        String requestBody = convertToJson(movie);
-
-        RestAssured.given()
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(requestBody).when()
-            .post("/movies/")
-            .then()
-            .statusCode(201);
-
-
-        UUID uuid1 = UUID.randomUUID();
         RestAssured.given()
             .when()
-            .delete("/movies/" + uuid1)
+            .delete("/movies/" + uuid)
             .then()
             .statusCode(404 )
-            .body(equalTo("No movie found with UUID " + uuid1));
+            .body(equalTo("No movie found with UUID " + uuid));
     }
 
 
