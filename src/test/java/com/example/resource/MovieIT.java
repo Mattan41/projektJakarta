@@ -193,7 +193,45 @@ class MovieResourceTestIT {
         assertEquals("Friday the 13:th", addedMovie.getTitle());
     }
 
+    @ParameterizedTest
+    @MethodSource("provideInvalidTitleData")
+    @DisplayName("given movie with invalid title should return status 400 and Validation error message")
+    void givenMovieWithInvalidTitleShouldReturnStatus400AndValidationErrorMessage(String title, String errorMessage) {
+        String requestBody = getRequestBodyForMissingTitle(title);
+
+        RestAssured.given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .when()
+                .post("/movies")
+                .then()
+                .statusCode(400)
+                .body("title", equalTo("Validation Errors"))
+                .body("errors.field", hasItem("title"))
+                .body("errors.violationMessage", hasItems(errorMessage));
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideInvalidDirectorData")
+    @DisplayName("given movie with invalid director should return status 400 and Validation error message")
+    void givenMovieWithInvalidDirectorShouldReturnStatus400AndValidationErrorMessage(String director, String errorMessage) {
+        String requestBody = getRequestBodyForMissingDirector(director);
+
+        RestAssured.given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .when()
+                .post("/movies")
+                .then()
+                .statusCode(400)
+                .body("title", equalTo("Validation Errors"))
+                .body("errors.field", hasItem("director"))
+                .body("errors.violationMessage", hasItems(errorMessage));
+    }
+
+
     //PUT
+
     @Test
     @DisplayName("shouldUpdateMovieAndReturnUpdatedMovieDetails")
     void shouldUpdateMovieAndReturnUpdatedMovieDetails() {
@@ -266,17 +304,31 @@ class MovieResourceTestIT {
 
     }
 
+
     @ParameterizedTest
     @MethodSource("provideInvalidTitleData")
-    @DisplayName("given movie with invalid title should return status 400 and Validation error message")
-    void givenMovieWithInvalidTitleShouldReturnStatus400AndValidationErrorMessage(String title, String errorMessage) {
-        String requestBody = getRequestBodyForMissingTitle(title);
+    @DisplayName("given movie with invalid title when updating should return status 400 and Validation error message")
+    void invalidTitleUpdateTest(String title, String errorMessage) {
+
+        UUID uuid = UUID.randomUUID();
+        Movie movie = createMovie(uuid, "frank Zappa", "Horror", 3.3f, 1985, "Friday the 13:th");
+        String requestBody = convertToJson(movie);
 
         RestAssured.given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(requestBody)
                 .when()
                 .post("/movies")
+                .then()
+                .statusCode(201);
+
+        String requestBody2 = getRequestBodyForMissingTitle(title);
+
+        RestAssured.given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody2)
+                .when()
+                .put("/movies/" + movie.getUuid())
                 .then()
                 .statusCode(400)
                 .body("title", equalTo("Validation Errors"))
@@ -287,8 +339,11 @@ class MovieResourceTestIT {
     @ParameterizedTest
     @MethodSource("provideInvalidDirectorData")
     @DisplayName("given movie with invalid director should return status 400 and Validation error message")
-    void givenMovieWithInvalidDirectorShouldReturnStatus400AndValidationErrorMessage(String director, String errorMessage) {
-        String requestBody = getRequestBodyForMissingDirector(director);
+    void invalidDirectorUpdateTest(String director, String errorMessage) {
+
+        UUID uuid = UUID.randomUUID();
+        Movie movie = createMovie(uuid, "frank Zappa", "Horror", 3.3f, 1985, "Friday the 13:th");
+        String requestBody = convertToJson(movie);
 
         RestAssured.given()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -296,11 +351,23 @@ class MovieResourceTestIT {
                 .when()
                 .post("/movies")
                 .then()
+                .statusCode(201);
+
+        String requestBody2 = getRequestBodyForMissingDirector(director);
+
+        RestAssured.given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody2)
+                .when()
+                .put("/movies/" + movie.getUuid())
+                .then()
                 .statusCode(400)
                 .body("title", equalTo("Validation Errors"))
                 .body("errors.field", hasItem("director"))
                 .body("errors.violationMessage", hasItems(errorMessage));
+
     }
+
 
     //DELETE
     @Test
