@@ -76,7 +76,7 @@ public class MovieResource {
     @PUT
     @Path("/{uuid}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateOne(@PathParam("uuid") UUID uuid, MovieDto movie) {
+    public Response updateOne(@PathParam("uuid") UUID uuid, @Valid MovieDto movie) {
         Optional<Movie> m = movieRepository.getByUuid(uuid);
         if (m.isPresent()) {
             movieRepository.replace(uuid, MovieDto.map(movie));
