@@ -24,7 +24,6 @@ public class Movie implements Serializable {
     @Column(name = "uuid", nullable = false,updatable = false, columnDefinition = "BINARY(16)")
     private UUID uuid;
 
-    @NotNull
     @NotEmpty
     @Size(max = 100)
     @Column(name = "title", length = 100)
@@ -33,7 +32,6 @@ public class Movie implements Serializable {
     @Column(name = "releaseYear")
     private Integer releaseYear;
 
-    @NotNull
     @NotEmpty
     @Size(max = 50)
     @Column(name = "director", length = 50)
