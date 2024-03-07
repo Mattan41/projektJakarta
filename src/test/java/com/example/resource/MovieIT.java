@@ -88,8 +88,8 @@ class MovieResourceTestIT {
 
     //POST
     @Test
-    @DisplayName("Request for create response Status code 201")
-    void requestForCreateResponseStatusCode201() {
+    @DisplayName("Request for create response Status code 201 with body message")
+    void requestForCreateResponseStatusCode201WithBodyMessage() {
 
         String requestBody = "{"
             + "\"director\": \"frank Zappa\","
@@ -105,7 +105,8 @@ class MovieResourceTestIT {
             .when()
             .post("/movies")
             .then()
-            .statusCode(201);
+            .statusCode(201)
+            .body(equalTo("Movie successfully added"));
     }
 
     @Test
