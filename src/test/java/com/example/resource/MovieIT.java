@@ -77,7 +77,7 @@ class MovieResourceTestIT {
             .extract()
             .as(Movies.class);
         movies.movieDtos().clear();
-        assertEquals(List.of(),movies.movieDtos());
+        assertEquals(List.of(), movies.movieDtos());
     }
 
     @Test
@@ -215,7 +215,6 @@ class MovieResourceTestIT {
             .body(equalTo("No movie found with UUID " + uuid));
 
     }
-
 
 
     @NotNull
