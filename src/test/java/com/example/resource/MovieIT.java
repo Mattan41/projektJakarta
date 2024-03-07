@@ -10,6 +10,7 @@ import io.restassured.RestAssured;
 import io.restassured.parsing.Parser;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 import org.testcontainers.containers.ComposeContainer;
@@ -22,7 +23,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 class MovieResourceTestIT {
@@ -216,6 +217,63 @@ class MovieResourceTestIT {
 
     }
 
+    @Test
+    @DisplayName("Delete should return status 200")
+    void deleteShouldReturnStatus200() {
+
+        UUID uuid = UUID.randomUUID();
+        Movie movie = createMovie(uuid, "frank Zappa", "Horror", 3.3f, 1985, "Friday the 13:th");
+        String requestBody = convertToJson(movie);
+
+        RestAssured.given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(requestBody).when()
+            .post("/movies/")
+            .then()
+            .statusCode(201);
+
+        RestAssured.given()
+            .when()
+            .delete("/movies/" + movie.getUuid())
+            .then()
+            .statusCode(200 )
+            .body(equalTo("Successfully deleted"));
+
+    }
+
+    @Test
+    @DisplayName("Delete without uuid should return 405")
+    void deleteWithoutUuidShouldReturn405() {
+        UUID uuid = UUID.randomUUID();
+        Movie movie = createMovie(uuid, "frank Zappa", "Horror", 3.3f, 1985, "Friday the 13:th");
+        String requestBody = convertToJson(movie);
+
+        RestAssured.given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(requestBody).when()
+            .post("/movies/")
+            .then()
+            .statusCode(201);
+
+        RestAssured.given()
+            .when()
+            .delete("/movies/" )
+            .then()
+            .statusCode(405 );
+
+    }
+
+    @Test
+    @DisplayName("Delete with wrong uuid should return 404")
+    void deleteWithWrongUuidShouldReturn404() {
+        UUID uuid = UUID.randomUUID();
+        RestAssured.given()
+            .when()
+            .delete("/movies/" + uuid)
+            .then()
+            .statusCode(404 )
+            .body(equalTo("No movie found with UUID " + uuid));
+    }
 
     @NotNull
     private static Movie createMovie(UUID uuid, String director, String genre, float rating, int year, String title) {
