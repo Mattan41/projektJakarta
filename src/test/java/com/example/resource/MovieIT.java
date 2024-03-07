@@ -12,10 +12,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
@@ -59,6 +56,18 @@ class MovieResourceTestIT {
         RestAssured.port = port;
     }
 
+    @AfterEach
+    void cleanup() {
+        Movies movies = RestAssured.get("/movies").then()
+            .extract()
+            .as(Movies.class);
+
+        for (MovieDto movieDto : movies.movieDtos()) {
+            RestAssured.delete("/movies/" + movieDto.uuid())
+                .then()
+                .statusCode(200);
+        }
+    }
 
     //GET
     @Test
@@ -69,7 +78,7 @@ class MovieResourceTestIT {
             .extract()
             .as(Movies.class);
         movies.movieDtos().clear();
-        assertEquals(List.of(),movies.movieDtos());
+        assertEquals(List.of(), movies.movieDtos());
     }
 
     @Test
@@ -265,7 +274,6 @@ class MovieResourceTestIT {
             .statusCode(404 )
             .body(equalTo("No movie found with UUID " + uuid));
     }
-
 
     @NotNull
     private static Movie createMovie(UUID uuid, String director, String genre, float rating, int year, String title) {
