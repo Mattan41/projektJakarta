@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.provider.Arguments;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
@@ -23,9 +24,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.io.File;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @Testcontainers
 class MovieResourceTestIT {
@@ -81,6 +86,7 @@ class MovieResourceTestIT {
 
     }
 
+    //POST
     @Test
     @DisplayName("Request for create response Status code 201")
     void requestForCreateResponseStatusCode201() {
@@ -134,6 +140,44 @@ class MovieResourceTestIT {
         assertEquals("Friday the 13:th", addedMovie.getTitle());
     }
 
+    @ParameterizedTest
+    @MethodSource("provideInvalidTitleData")
+    @DisplayName("given movie with invalid title should return status 400 and Validation error message")
+    void givenMovieWithInvalidTitleShouldReturnStatus400AndValidationErrorMessage(String title, String errorMessage) {
+        String requestBody = getRequestBodyForMissingTitle(title);
+
+        RestAssured.given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(requestBody)
+            .when()
+            .post("/movies")
+            .then()
+            .statusCode(400)
+            .body("title", equalTo("Validation Errors"))
+            .body("errors.field", hasItem("title"))
+            .body("errors.violationMessage", hasItems(errorMessage));
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideInvalidDirectorData")
+    @DisplayName("given movie with invalid director should return status 400 and Validation error message")
+    void givenMovieWithInvalidDirectorShouldReturnStatus400AndValidationErrorMessage(String director, String errorMessage) {
+        String requestBody = getRequestBodyForMissingDirector(director);
+
+        RestAssured.given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(requestBody)
+            .when()
+            .post("/movies")
+            .then()
+            .statusCode(400)
+            .body("title", equalTo("Validation Errors"))
+            .body("errors.field", hasItem("director"))
+            .body("errors.violationMessage", hasItems(errorMessage));
+    }
+
+
+    //PUT
     @Test
     @DisplayName("shouldUpdateMovieAndReturnUpdatedMovieDetails")
     void shouldUpdateMovieAndReturnUpdatedMovieDetails() {
@@ -183,7 +227,6 @@ class MovieResourceTestIT {
         assertEquals("Updated Title", updatedMovie.getTitle());
     }
 
-
     @Test
     @DisplayName("shouldReturnNotFoundWhenUpdatingNonExistingMovie")
     void shouldReturnNotFoundWhenUpdatingNonExistingMovie() {
@@ -208,6 +251,9 @@ class MovieResourceTestIT {
     }
 
 
+    //DELETE
+
+    //Extracted Methods
 
     @NotNull
     private static Movie createMovie(UUID uuid, String director, String genre, float rating, int year, String title) {
@@ -230,6 +276,64 @@ class MovieResourceTestIT {
             throw new RuntimeException(e);
         }
         return requestBody;
+    }
+
+    @NotNull
+    private static String getRequestBodyForMissingDirector(String director) {
+        String requestBody;
+        if (director == null) {
+            requestBody = "{"
+                + "\"genre\": \"Horror\","
+                + "\"rating\": 3.3,"
+                + "\"releaseYear\": 1985,"
+                + "\"title\": \"Friday the 13:th\""
+                + "}";
+        } else {
+            requestBody = "{"
+                + "\"director\": \"" + director + "\","
+                + "\"genre\": \"Horror\","
+                + "\"rating\": 3.3,"
+                + "\"releaseYear\": 1985,"
+                + "\"title\": \"Friday the 13:th\""
+                + "}";
+        }
+        return requestBody;
+    }
+
+    @NotNull
+    private static String getRequestBodyForMissingTitle(String title) {
+        String requestBody;
+        if (title == null) {
+            requestBody = "{"
+                + "\"director\": \"frank Zappa\","
+                + "\"genre\": \"Horror\","
+                + "\"rating\": 3.3,"
+                + "\"releaseYear\": 1985"
+                + "}";
+        } else {
+            requestBody = "{"
+                + "\"director\": \"frank Zappa\","
+                + "\"genre\": \"Horror\","
+                + "\"rating\": 3.3,"
+                + "\"releaseYear\": 1985,"
+                + "\"title\": \"" + title + "\""
+                + "}";
+        }
+        return requestBody;
+    }
+
+    private static Stream<Arguments> provideInvalidDirectorData() {
+        return Stream.of(
+            Arguments.of("", "Director missing"),
+            Arguments.of(null, "Director missing")
+        );
+    }
+
+    private static Stream<Arguments> provideInvalidTitleData() {
+        return Stream.of(
+            Arguments.of("", "Title missing"),
+            Arguments.of(null, "Title missing")
+        );
     }
 
 
