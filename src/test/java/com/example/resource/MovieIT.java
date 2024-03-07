@@ -91,10 +91,23 @@ class MovieResourceTestIT {
         UUID uuid1 = UUID.randomUUID();
         UUID uuid2 = UUID.randomUUID();
         UUID uuid3 = UUID.randomUUID();
-        createMovie(uuid1, "Frank Zappa", "Horror", 3.3f, 1985, "Friday the 13:th");
-        createMovie(uuid2, "Steven Spielberg", "Adventure", 4.5f, 1993, "Jurassic Park");
-        createMovie(uuid3, "Christopher Nolan", "Sci-Fi", 4.7f, 2010, "Inception");
+        Movie movie1 = createMovie(uuid1, "Frank Zappa", "Horror", 3.3f, 1985, "Friday the 13:th");
+        Movie movie2 = createMovie(uuid2, "Steven Spielberg", "Adventure", 4.5f, 1993, "Jurassic Park");
+        Movie movie3 = createMovie(uuid3, "Christopher Nolan", "Sci-Fi", 4.7f, 2010, "Inception");
 
+        List<Movie> moviesList = List.of(movie1, movie2, movie3);
+
+        for (Movie movie : moviesList) {
+            String requestBody = convertToJson(movie);
+
+            RestAssured.given()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(requestBody)
+                    .when()
+                    .post("/movies")
+                    .then()
+                    .statusCode(201);
+        }
         Movies movies = RestAssured.get("/movies").then()
                 .extract()
                 .as(Movies.class);
@@ -145,7 +158,7 @@ class MovieResourceTestIT {
                 .post("/movies")
                 .then()
                 .statusCode(201)
-                .body(equalTo("Successfully added Movie"));
+                .body(equalTo("Movie successfully added"));
     }
 
     @Test
