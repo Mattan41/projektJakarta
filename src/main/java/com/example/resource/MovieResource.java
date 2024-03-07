@@ -43,19 +43,24 @@ public class MovieResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{uuid}")
-    public MovieDto one(@PathParam("uuid") UUID uuid) {
+    public Response one(@PathParam("uuid") UUID uuid) {
         Optional<Movie> m = movieRepository.getByUuid(uuid);
         if (m.isPresent()) {
             Movie movie = m.get();
-            return MovieDto.map(movie);
-        } else throw new NotFoundException("No movie found with UUID " + uuid);
+            return Response.ok(MovieDto.map(movie)).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND)
+                .entity("No movie found with UUID " + uuid)
+                .build();
+        }
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(@Valid MovieDto movieDto) {
         var movie = movieRepository.add(MovieDto.map(movieDto));
-        return Response.created(URI.create(uriInfo.getAbsolutePath().toString() + "/" + movie.getUuid())).build();
+        URI movieUri = URI.create(uriInfo.getAbsolutePath().toString() + "/" + movie.getUuid());
+        return Response.created(movieUri).entity("Movie successfully added").build();
     }
 
     @DELETE
@@ -76,7 +81,7 @@ public class MovieResource {
     @PUT
     @Path("/{uuid}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateOne(@PathParam("uuid") UUID uuid, MovieDto movie) {
+    public Response updateOne(@PathParam("uuid") UUID uuid, @Valid MovieDto movie) {
         Optional<Movie> m = movieRepository.getByUuid(uuid);
         if (m.isPresent()) {
             movieRepository.replace(uuid, MovieDto.map(movie));
