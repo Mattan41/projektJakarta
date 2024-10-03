@@ -1,6 +1,91 @@
 # Restful Web Service Implementation with JAX-RS, Jakarta EE, and WildFly
 **A group assignment for the course Complex Java Development at ITHS, Gothenburg**
 
+## Build and Run Instructions:
+
+1. **Package the Application**:
+   ```bash
+   mvn package -DskipTests
+
+2. **Start the Application**:
+   ```bash
+   docker-compose up --build
+   ```
+
+## REST API Endpoints and Expected Formats:
+
+### GET /movies
+- **Response**: 
+ ```json
+{
+"movies": [
+{
+"uuid": "123e4567-e89b-12d3-a456-426614174000",
+"title": "The Shawshank Redemption",
+"director": "Frank Darabont",
+"genre": "Drama",
+"rating": 9.3,
+"releaseYear": 1994
+}
+],
+"timestamp": "2023-10-01T12:00:00"
+}
+```
+### GET /movies/{uuid}
+- **Response**:
+```json
+{
+"uuid": "123e4567-e89b-12d3-a456-426614174000",
+"title": "The Shawshank Redemption",
+"director": "Frank Darabont",
+"genre": "Drama",
+"rating": 9.3,
+"releaseYear": 1994
+}
+```
+### POST /movies
+Request:
+```json
+{
+"title": "The Shawshank Redemption",
+"director": "Frank Darabont",
+"genre": "Drama",
+"rating": 9.3,
+"releaseYear": 1994
+}
+```
+Response:
+```json
+{
+"message": "Movie successfully added",
+"location": "http://localhost:8080/api/movies/123e4567-e89b-12d3-a456-426614174000"
+}
+```
+### DELETE /movies/{uuid}
+Response:
+```json
+{
+"message": "Successfully deleted"
+}
+```
+### PUT /movies/{uuid}
+Request:
+```json
+{
+"title": "The Shawshank Redemption",
+"director": "Frank Darabont",
+"genre": "Drama",
+"rating": 9.3,
+"releaseYear": 1994
+}
+```
+Response:
+```json
+{
+"message": "Successfully updated"
+}      
+```
+
 The group consisted of: Emmelie Johansson, Mats Kruskopf Eriksson, Cristoffer Matlak, and Ludwig Persson
 ## Key Implementations:
 ### @Entity Classes:
